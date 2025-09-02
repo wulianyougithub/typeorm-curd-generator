@@ -1,0 +1,17 @@
+[
+  {
+    "name": "default",
+    "type": "{{databaseType}}",
+    "host": "{{host}}",
+    "port": {{port}},
+    "username": "{{user}}",
+    "password": "{{password}}",
+    "database": "{{databaseName}}",{{#schemaName}}
+    "schema": "{{.}}",{{/schemaName}}{{#instanceName}}
+    "extra": { "instanceName": "{{.}}" },{{/instanceName}}
+    "synchronize": false,
+    "entities": [
+      "entities/*.js"
+    ]
+  }
+]

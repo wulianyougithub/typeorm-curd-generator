@@ -1,0 +1,60 @@
+{{#if @root.generationOptions.addSwaggerIdentifier}}
+import { ApiProperty } from '@nestjs/swagger';
+{{/if}}
+
+{{#*inline "Index"}}
+@Index("{{name}}",[{{#columns}}"{{toPropertyName .}}",{{/columns~}}],{ {{json options}} })
+{{/inline}}
+{{#*inline "Import"}}
+import {{localImport (toEntityName entityName)}} from './{{toFileName fileName}}'
+{{/inline}}
+{{#*inline "Column"}}
+{{#if @root.generationOptions.addSwaggerIdentifier}}
+@ApiProperty({ description: '{{#if this.options.comment}}{{escapeNewlines this.options.comment}}{{else}}{{toEntityName ../tscName}}的{{toPropertyName tscName}}{{/if}}', type: () => {{toSwaggerType this}}{{#if (toSwaggerFormat this)}}, format: '{{toSwaggerFormat this}}'{{/if}} })
+{{/if}}
+{{#generated}}@PrimaryGeneratedColumn({ type:"{{type}}", {{/generated}}{{^generated}}@Column("{{type}}",{ {{#primary}}primary:{{primary}},{{/primary}}{{/generated}}{{json options}}{{#default}},default: {{.}},{{/default}} })
+{{printPropertyVisibility}}{{toPropertyName tscName}}{{strictMode}}:{{tscType}}{{#if options.nullable}} | null{{/if}};
+
+{{/inline}}
+{{#*inline "JoinColumnOptions"}}
+{ name: "{{name}}", referencedColumnName: "{{toPropertyName referencedColumnName}}" },
+{{/inline}}
+{{#*inline "Relation"}}
+{{#if @root.generationOptions.addSwaggerIdentifier}}
+@ApiProperty({ description: '{{toEntityName relatedTable}}相关联的实体' , type: () => {{toEntityName relatedTable}} })
+{{/if}}
+@{{relationType}}(()=>{{toEntityName relatedTable}},{{toPropertyName relatedTable}}=>{{toPropertyName relatedTable}}.{{toPropertyName relatedField}}{{#if relationOptions}},{ {{json relationOptions}} }{{/if}})
+{{#if joinColumnOptions}}@JoinColumn([{{#joinColumnOptions}}{{> JoinColumnOptions}}{{/joinColumnOptions}}]){{/if}}
+{{#joinTableOptions}}@JoinTable({ name:"{{name}}", joinColumns:[{{#joinColumns}}{{> JoinColumnOptions}}{{/joinColumns}}],inverseJoinColumns:[{{#inverseJoinColumns}}{{> JoinColumnOptions}}{{/inverseJoinColumns}}],{{#database}}database:"{{.}}",{{/database}}{{#schema}}schema:"{{.}}"{{/schema}} }){{/joinTableOptions}}
+{{printPropertyVisibility}}{{toPropertyName fieldName}}{{strictMode}}:{{toRelation (toEntityName relatedTable) relationType}};
+
+{{/inline}}
+{{#*inline "RelationId"}}
+{{#if @root.generationOptions.addSwaggerIdentifier}}
+@ApiProperty({ description: '{{toEntityName entityName}}的{{toPropertyName fieldName}} ID' , type: () => {{fieldType}} })
+{{/if}}
+@RelationId(({{toPropertyName entityName}}:{{toEntityName entityName}})=>{{toPropertyName entityName}}.{{toPropertyName relationField}})
+{{printPropertyVisibility}}{{toPropertyName fieldName}}{{strictMode}}:{{fieldType}};
+
+{{/inline}}
+{{#*inline "Constructor"}}
+{{printPropertyVisibility}}constructor(init?: Partial<{{toEntityName entityName}}>) {
+    {{#activeRecord}}super();
+    {{/activeRecord}}Object.assign(this, init);
+}
+{{/inline}}
+{{#*inline "Entity"}}
+{{#indices}}{{> Index}}{{/indices~}}
+@Entity("{{sqlName}}"{{#schema}} ,{schema:"{{.}}"{{#if ../database}}, database:"{{../database}}"{{/if}} } {{/schema}})
+export {{defaultExport}} class {{toEntityName tscName}}{{#activeRecord}} extends BaseEntity{{/activeRecord}} {
+
+{{#columns}}{{> Column}}{{/columns~}}
+{{#relations}}{{> Relation}}{{/relations~}}
+{{#relationIds}}{{> RelationId entityName=../tscName}}{{/relationIds~}}
+{{#if generateConstructor}}{{>Constructor entityName=tscName}}{{/if~}}
+}
+{{/inline}}
+import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne,OneToMany,OneToOne,PrimaryColumn,PrimaryGeneratedColumn,RelationId} from "typeorm";
+{{#fileImports}}{{> Import}}{{/fileImports}}
+
+{{> Entity}}

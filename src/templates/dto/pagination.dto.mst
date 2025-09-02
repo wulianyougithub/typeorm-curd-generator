@@ -1,0 +1,45 @@
+{{#if generationOptions.addSwaggerIdentifier}}
+import { ApiPropertyOptional } from '@nestjs/swagger';
+{{/if}}
+import { IsOptional, IsNumber, Min, Max, IsEnum, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+
+enum SortOrder {
+  ASC = 'ASC',
+  DESC = 'DESC',
+}
+
+export class Pagination{{toEntityName entity.tscName}}Dto {
+  {{#if generationOptions.addSwaggerIdentifier}}
+  @ApiPropertyOptional({ description: '页码', type: Number, minimum: 1, default: 1 })
+  {{/if}}
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Type(() => Number)
+  page?: number = 1;
+
+  {{#if generationOptions.addSwaggerIdentifier}}
+  @ApiPropertyOptional({ description: '每页条数', type: Number, minimum: 1, maximum: 100, default: 10 })
+  {{/if}}
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(100)
+  @Type(() => Number)
+  limit?: number = 10;
+
+  {{#if generationOptions.addSwaggerIdentifier}}
+  @ApiPropertyOptional({ description: '排序字段', type: String, example: 'id' })
+  {{/if}}
+  @IsOptional()
+  @IsString()
+  sortBy?: string;
+
+  {{#if generationOptions.addSwaggerIdentifier}}
+  @ApiPropertyOptional({ description: '排序顺序', enum: SortOrder, default: SortOrder.ASC })
+  {{/if}}
+  @IsOptional()
+  @IsEnum(SortOrder)
+  sortOrder?: SortOrder = SortOrder.ASC;
+}

@@ -1,0 +1,122 @@
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+{{#if generationOptions.addSwaggerIdentifier}}
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiQuery, ApiOkResponse, ApiExtraModels, getSchemaPath } from '@nestjs/swagger';
+{{/if}}
+import { {{toEntityName entity.tscName}}Service } from './{{toFileName entity.tscName}}.service';
+import { Create{{toEntityName entity.tscName}}Dto } from './dto/create-{{toFileName entity.tscName}}.dto';
+import { Update{{toEntityName entity.tscName}}Dto } from './dto/update-{{toFileName entity.tscName}}.dto';
+import { Pagination{{toEntityName entity.tscName}}Dto } from './dto/pagination-{{toFileName entity.tscName}}.dto';
+import { {{toEntityName entity.tscName}} } from './entity/{{toFileName entity.tscName}}.entity';
+
+{{#if generationOptions.addSwaggerIdentifier}}
+@ApiTags('{{toEntityName entity.tscName}}')
+@ApiExtraModels({{toEntityName entity.tscName}})
+{{/if}}
+@Controller('{{toFileName entity.tscName}}')
+export class {{toEntityName entity.tscName}}Controller {
+  constructor(private readonly {{toPropertyName entity.tscName}}Service: {{toEntityName entity.tscName}}Service) {}
+
+  {{#if generationOptions.addPermissionIdentifier}}
+  {{generationOptions.permissionIdentifier}}('{{#if generationOptions.perMissionIdentifierPrefix}}{{generationOptions.perMissionIdentifierPrefix}}:{{/if}}{{toPropertyName entity.tscName}}:add')
+  {{/if}}
+  @Post()
+  {{#if generationOptions.addSwaggerIdentifier}}
+  @ApiOperation({ summary: '创建{{toEntityName entity.tscName}}' })
+  @ApiResponse({ status: 201, description: '{{toEntityName entity.tscName}}已成功创建。', type: {{toEntityName entity.tscName}} })
+  @ApiBody({ type: Create{{toEntityName entity.tscName}}Dto })
+  {{/if}}
+  create(@Body() create{{toEntityName entity.tscName}}Dto: Create{{toEntityName entity.tscName}}Dto) {
+    return this.{{toPropertyName entity.tscName}}Service.create(create{{toEntityName entity.tscName}}Dto);
+  }
+
+  {{#if generationOptions.addPermissionIdentifier}}
+  {{generationOptions.permissionIdentifier}}('{{#if generationOptions.perMissionIdentifierPrefix}}{{generationOptions.perMissionIdentifierPrefix}}:{{/if}}{{toPropertyName entity.tscName}}:edit')
+  {{/if}}
+  @Patch('/upsert')
+  {{#if generationOptions.addSwaggerIdentifier}}
+  @ApiOperation({ summary: '更新或插入{{toEntityName entity.tscName}}' })
+  @ApiBody({ type: Create{{toEntityName entity.tscName}}Dto })
+  @ApiResponse({ status: 200, description: '{{toEntityName entity.tscName}}已成功更新或插入。', type: {{toEntityName entity.tscName}} })
+  {{/if}}
+  upsert(@Body() create{{toEntityName entity.tscName}}Dto: Create{{toEntityName entity.tscName}}Dto) {
+    return this.{{toPropertyName entity.tscName}}Service.upsert(create{{toEntityName entity.tscName}}Dto);
+  }
+
+  {{#if generationOptions.addPermissionIdentifier}}
+  {{generationOptions.permissionIdentifier}}('{{#if generationOptions.perMissionIdentifierPrefix}}{{generationOptions.perMissionIdentifierPrefix}}:{{/if}}{{toPropertyName entity.tscName}}:list')
+  {{/if}}
+  @Get()
+  {{#if generationOptions.addSwaggerIdentifier}}
+  @ApiOperation({ summary: '获取所有{{toEntityName entity.tscName}}' })
+  @ApiResponse({ status: 200, description: '返回所有{{toEntityName entity.tscName}}。', type: [{{toEntityName entity.tscName}}] })
+  {{/if}}
+  findAll() {
+    return this.{{toPropertyName entity.tscName}}Service.findAll();
+  }
+
+  {{#if generationOptions.addPermissionIdentifier}}
+  {{generationOptions.permissionIdentifier}}('{{#if generationOptions.perMissionIdentifierPrefix}}{{generationOptions.perMissionIdentifierPrefix}}:{{/if}}{{toPropertyName entity.tscName}}:list')
+  {{/if}}
+  @Get('/paginate')
+  {{#if generationOptions.addSwaggerIdentifier}}
+  @ApiOperation({ summary: '分页获取{{toEntityName entity.tscName}}列表' })
+  @ApiQuery({ name: 'page', type: Number, required: false, description: '页码' })
+  @ApiQuery({ name: 'limit', type: Number, required: false, description: '每页条数' })
+  @ApiQuery({ name: 'sortBy', type: String, required: false, description: '排序字段' })
+  @ApiQuery({ name: 'sortOrder', enum: ['ASC', 'DESC'], required: false, description: '排序顺序' })
+  @ApiOkResponse({
+    schema: {
+      properties: {
+        total: { type: 'number', example: 100 },
+        rows: { type: 'array',  items: { $ref: getSchemaPath({{toEntityName entity.tscName}}) } },
+      },
+    },
+  })
+  {{/if}}
+  async findPaginated(@Query() paginationDto: Pagination{{toEntityName entity.tscName}}Dto) {
+    return this.{{toPropertyName entity.tscName}}Service.findAndPaginate(paginationDto);
+  }
+
+  {{#if generationOptions.addPermissionIdentifier}}
+  {{generationOptions.permissionIdentifier}}('{{#if generationOptions.perMissionIdentifierPrefix}}{{generationOptions.perMissionIdentifierPrefix}}:{{/if}}{{toPropertyName entity.tscName}}:query')
+  {{/if}}
+  @Get(':id')
+  {{#if generationOptions.addSwaggerIdentifier}}
+  @ApiOperation({ summary: '根据ID获取{{toEntityName entity.tscName}}' })
+  @ApiParam({ name: 'id', description: '{{toEntityName entity.tscName}}的ID' })
+  @ApiResponse({ status: 200, description: '返回单个{{toEntityName entity.tscName}}。', type: {{toEntityName entity.tscName}} })
+  @ApiResponse({ status: 404, description: '未找到{{toEntityName entity.tscName}}。' })
+  {{/if}}
+  findOne(@Param('id') id: string) {
+    return this.{{toPropertyName entity.tscName}}Service.findOne(+id);
+  }
+
+  {{#if generationOptions.addPermissionIdentifier}}
+  {{generationOptions.permissionIdentifier}}('{{#if generationOptions.perMissionIdentifierPrefix}}{{generationOptions.perMissionIdentifierPrefix}}:{{/if}}{{toPropertyName entity.tscName}}:edit')
+  {{/if}}
+  @Patch(':id')
+  {{#if generationOptions.addSwaggerIdentifier}}
+  @ApiOperation({ summary: '根据ID更新{{toEntityName entity.tscName}}' })
+  @ApiParam({ name: 'id', description: '{{toEntityName entity.tscName}}的ID' })
+  @ApiBody({ type: Update{{toEntityName entity.tscName}}Dto })
+  @ApiResponse({ status: 200, description: '{{toEntityName entity.tscName}}已成功更新。', type: {{toEntityName entity.tscName}} })
+  @ApiResponse({ status: 404, description: '未找到{{toEntityName entity.tscName}}。' })
+  {{/if}}
+  update(@Param('id') id: string, @Body() update{{toEntityName entity.tscName}}Dto: Update{{toEntityName entity.tscName}}Dto) {
+    return this.{{toPropertyName entity.tscName}}Service.update(+id, update{{toEntityName entity.tscName}}Dto);
+  }
+
+  {{#if generationOptions.addPermissionIdentifier}}
+  {{generationOptions.permissionIdentifier}}('{{#if generationOptions.perMissionIdentifierPrefix}}{{generationOptions.perMissionIdentifierPrefix}}:{{/if}}{{toPropertyName entity.tscName}}:remove')
+  {{/if}}
+  @Delete(':id')
+  {{#if generationOptions.addSwaggerIdentifier}}
+  @ApiOperation({ summary: '根据ID删除{{toEntityName entity.tscName}}' })
+  @ApiParam({ name: 'id', description: '{{toEntityName entity.tscName}}的ID' })
+  @ApiResponse({ status: 204, description: '{{toEntityName entity.tscName}}已成功删除。' })
+  @ApiResponse({ status: 404, description: '未找到{{toEntityName entity.tscName}}。' })
+  {{/if}}
+  remove(@Param('id') id: string) {
+    return this.{{toPropertyName entity.tscName}}Service.remove(+id);
+  }
+}

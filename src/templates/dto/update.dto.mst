@@ -1,0 +1,8 @@
+{{#if generationOptions.addSwaggerIdentifier}}
+import { PartialType } from '@nestjs/swagger';
+{{else}}
+import { PartialType } from '@nestjs/mapped-types';
+{{/if}}
+import { Create{{toEntityName entity.tscName}}Dto } from './create-{{toFileName entity.tscName}}.dto';
+
+export class Update{{toEntityName entity.tscName}}Dto extends PartialType(Create{{toEntityName entity.tscName}}Dto) {}

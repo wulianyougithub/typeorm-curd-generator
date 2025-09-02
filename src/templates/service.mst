@@ -1,0 +1,74 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Create{{toEntityName entity.tscName}}Dto } from './dto/create-{{toFileName entity.tscName}}.dto';
+import { Update{{toEntityName entity.tscName}}Dto } from './dto/update-{{toFileName entity.tscName}}.dto';
+import { Pagination{{toEntityName entity.tscName}}Dto } from './dto/pagination-{{toFileName entity.tscName}}.dto';
+import { {{toEntityName entity.tscName}} } from './entity/{{toFileName entity.tscName}}.entity';
+
+@Injectable()
+export class {{toEntityName entity.tscName}}Service {
+  constructor(
+    @InjectRepository({{toEntityName entity.tscName}})
+    private readonly {{toPropertyName entity.tscName}}Repository: Repository<{{toEntityName entity.tscName}}>,
+  ) {}
+
+  create(create{{toEntityName entity.tscName}}Dto: Create{{toEntityName entity.tscName}}Dto) {
+    const {{toPropertyName entity.tscName}} = this.{{toPropertyName entity.tscName}}Repository.create(create{{toEntityName entity.tscName}}Dto);
+    return this.{{toPropertyName entity.tscName}}Repository.save({{toPropertyName entity.tscName}});
+  }
+
+  findAll() {
+    return this.{{toPropertyName entity.tscName}}Repository.find();
+  }
+
+  async findOne(id: number) {
+    const {{toPropertyName entity.tscName}} = await this.{{toPropertyName entity.tscName}}Repository.findOne({ where: { id } });
+    if (!{{toPropertyName entity.tscName}}) {
+      throw new NotFoundException(`ID为 ${id} 的{{toEntityName entity.tscName}}未找到`);
+    }
+    return {{toPropertyName entity.tscName}};
+  }
+
+  async update(id: number, update{{toEntityName entity.tscName}}Dto: Update{{toEntityName entity.tscName}}Dto) {
+    const {{toPropertyName entity.tscName}} = await this.findOne(id);
+    this.{{toPropertyName entity.tscName}}Repository.merge({{toPropertyName entity.tscName}}, update{{toEntityName entity.tscName}}Dto);
+    return this.{{toPropertyName entity.tscName}}Repository.save({{toPropertyName entity.tscName}});
+  }
+
+  async remove(id: number) {
+    const {{toPropertyName entity.tscName}} = await this.findOne(id);
+    await this.{{toPropertyName entity.tscName}}Repository.remove({{toPropertyName entity.tscName}});
+  }
+
+  async upsert(create{{toEntityName entity.tscName}}Dto: Create{{toEntityName entity.tscName}}Dto) {
+    const primaryKey = (create{{toEntityName entity.tscName}}Dto as any).id; // 假设 'id' 是主键
+    if (primaryKey) {
+      const existing{{toEntityName entity.tscName}} = await this.{{toPropertyName entity.tscName}}Repository.findOne({ where: { id: primaryKey } });
+      if (existing{{toEntityName entity.tscName}}) {
+        this.{{toPropertyName entity.tscName}}Repository.merge(existing{{toEntityName entity.tscName}}, create{{toEntityName entity.tscName}}Dto as Update{{toEntityName entity.tscName}}Dto);
+        return this.{{toPropertyName entity.tscName}}Repository.save(existing{{toEntityName entity.tscName}});
+      }
+    }
+    const new{{toEntityName entity.tscName}} = this.{{toPropertyName entity.tscName}}Repository.create(create{{toEntityName entity.tscName}}Dto);
+    return this.{{toPropertyName entity.tscName}}Repository.save(new{{toEntityName entity.tscName}});
+  }
+
+  async findAndPaginate(paginationDto: Pagination{{toEntityName entity.tscName}}Dto) {
+    const { page=1, limit=10, sortBy, sortOrder } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const order: { [key: string]: 'ASC' | 'DESC' } = {};
+    if (sortBy && sortOrder) {
+      order[sortBy] = sortOrder;
+    }
+
+    const [rows, total] = await this.{{toPropertyName entity.tscName}}Repository.findAndCount({
+      skip: skip,
+      take: limit,
+      order: order,
+    });
+
+    return { total, rows };
+  }
+}

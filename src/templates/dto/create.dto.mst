@@ -1,0 +1,32 @@
+{{#if generationOptions.addSwaggerIdentifier}}
+import { ApiProperty } from '@nestjs/swagger';
+{{/if}}
+import { IsNotEmpty } from 'class-validator';
+
+export class Create{{toEntityName entity.tscName}}Dto {
+  {{#each entity.columns}}
+  {{!-- 跳过数据库自动生成的列 --}}
+  {{#if (isGenerated this)}}
+  {{else}}
+    {{#if (or (isPrimaryKey this) (eq (toPropertyName this.tscName) 'id'))}}
+    {{#if ../generationOptions.addSwaggerIdentifier}}
+    @ApiProperty({ description: '{{toEntityName ../entity.tscName}}的{{toPropertyName this.tscName}}', type: () => {{toSwaggerType this}}, format: '{{toSwaggerFormat this}}' })
+    {{/if}}
+    {{toPropertyName this.tscName}}?: {{toColumnType this}};
+    {{else}}
+      {{#if this.isNullable}}
+      {{#if ../generationOptions.addSwaggerIdentifier}}
+      @ApiProperty({ description: '{{toEntityName ../entity.tscName}}的{{toPropertyName this.tscName}}', type: () => {{toSwaggerType this}}, format: '{{toSwaggerFormat this}}' })
+      {{/if}}
+      {{toPropertyName this.tscName}}?: {{toColumnType this}};
+      {{else}}
+      {{#if ../generationOptions.addSwaggerIdentifier}}
+      @ApiProperty({ description: '{{toEntityName ../entity.tscName}}的{{toPropertyName this.tscName}}', type: () => {{toSwaggerType this}}, format: '{{toSwaggerFormat this}}' })
+      {{/if}}
+      @IsNotEmpty()
+      {{toPropertyName this.tscName}}: {{toColumnType this}};
+      {{/if}}
+    {{/if}}
+  {{/if}}
+  {{/each}}
+}
