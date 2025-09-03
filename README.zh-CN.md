@@ -60,6 +60,7 @@ export class MyService {
       ssl: false,
       skipTables: [],
       onlyTables: [],
+      includeRelatedTables:true,
     };
 
     const generationOptions: Partial<IGenerationOptions> = {
@@ -147,6 +148,7 @@ interface IConnectionOptions {
   skipTables: string[];          // 要跳过的表
   onlyTables: string[];          // 只处理的表
   instanceName?: string;
+  includeRelatedTables:boolean //  如果设置onlyTables，并且有关联表不在onlyTables中，那么该字段就要设置为false，生成的entity不会包含关联关系，如果都存在，设置为true，会生成带关联关系的entity
 }
 ```
 
@@ -272,6 +274,7 @@ export class MyService {
       ssl: false,
       skipTables: [],
       onlyTables: [],
+      onlyTables:true,
     };
 
     const generationOptions: Partial<IGenerationOptions> = {
@@ -319,6 +322,7 @@ export class MyService {
       ssl: false,
       skipTables: [],
       onlyTables: [],
+      onlyTables:true
     }, {
       resultsPath: './src/generated',
       convertCaseEntity: 'pascal',
@@ -341,7 +345,7 @@ export class MyService {
 您可以通过修改 `templates/` 目录中的 Handlebars 模板来自定义生成的代码。
 
 
-### 1.0.0
+### 1.x
 - 初始版本
 - 支持多种数据库类型
 - 带有可定制模板的 CRUD 生成

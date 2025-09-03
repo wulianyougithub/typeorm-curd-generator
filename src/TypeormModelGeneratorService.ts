@@ -17,6 +17,12 @@ function registerHandlebarsHelpers(generationOptions: IGenerationOptions): void 
         return withoutQuotes.slice(1, withoutQuotes.length - 1);
     });
     Handlebars.registerHelper("toEntityName", (str) => {
+        // 安全检查：确保 str 参数存在且是字符串
+        if (!str || typeof str !== 'string') {
+            console.warn('Warning: toEntityName received invalid input:', str);
+            return '';
+        }
+        
         let retStr = "";
         switch (generationOptions.convertCaseEntity) {
             case "camel":
@@ -34,6 +40,12 @@ function registerHandlebarsHelpers(generationOptions: IGenerationOptions): void 
         return retStr;
     });
     Handlebars.registerHelper("toFileName", (str) => {
+        // 安全检查：确保 str 参数存在且是字符串
+        if (!str || typeof str !== 'string') {
+            console.warn('Warning: toFileName received invalid input:', str);
+            return '';
+        }
+        
         let retStr = "";
         switch (generationOptions.convertCaseFile) {
             case "camel":
@@ -59,6 +71,12 @@ function registerHandlebarsHelpers(generationOptions: IGenerationOptions): void 
             : ""
     );
     Handlebars.registerHelper("toPropertyName", (str) => {
+        // 安全检查：确保 str 参数存在且是字符串
+        if (!str || typeof str !== 'string') {
+            console.warn('Warning: toPropertyName received invalid input:', str);
+            return '';
+        }
+        
         let retStr = "";
         switch (generationOptions.convertCaseProperty) {
             case "camel":
@@ -81,6 +99,12 @@ function registerHandlebarsHelpers(generationOptions: IGenerationOptions): void 
     Handlebars.registerHelper(
         "toRelation",
         (entityType, relationType) => {
+            // 安全检查：确保 entityType 参数存在且是字符串
+            if (!entityType || typeof entityType !== 'string') {
+                console.warn('Warning: toRelation received invalid entityType:', entityType);
+                return '';
+            }
+            
             let retVal = entityType;
             if (relationType === "ManyToMany" || relationType === "OneToMany") {
                 retVal = `${retVal}[]`;
@@ -94,11 +118,17 @@ function registerHandlebarsHelpers(generationOptions: IGenerationOptions): void 
     Handlebars.registerHelper("defaultExport", () =>
         generationOptions.exportType === "default" ? "default" : ""
     );
-    Handlebars.registerHelper("localImport", (entityName) =>
-        generationOptions.exportType === "default"
+    Handlebars.registerHelper("localImport", (entityName) => {
+        // 安全检查：确保 entityName 参数存在且是字符串
+        if (!entityName || typeof entityName !== 'string') {
+            console.warn('Warning: localImport received invalid entityName:', entityName);
+            return '';
+        }
+        
+        return generationOptions.exportType === "default"
             ? entityName
-            : `{${entityName}}`
-    );
+            : `{${entityName}}`;
+    });
     Handlebars.registerHelper("strictMode", () =>
         generationOptions.strictMode !== "none"
             ? generationOptions.strictMode
@@ -146,7 +176,7 @@ function registerHandlebarsHelpers(generationOptions: IGenerationOptions): void 
 
 export class TypeormModelGeneratorService {
     /**
-     * 获取符合 TypeORM 规范的 entity 数据（不生成文件）
+     * 获取符合 TypeORM 规范的 entity 数据（不生成文件）,是模版数据,后期可用于渲染模板
      * @param connectionOptions 数据库连接配置
      * @param generationOptions 生成配置（可选，默认即可）
      * @returns Promise<Entity[]>
@@ -155,13 +185,14 @@ export class TypeormModelGeneratorService {
         const defaultGenerationOptions = require("./IGenerationOptions").getDefaultGenerationOptions();
         const mergedGenerationOptions = { ...defaultGenerationOptions, ...generationOptions };
         const driver = createDriver(connectionOptions.databaseType);
-        const dbModel = await dataCollectionPhase(driver, connectionOptions, mergedGenerationOptions);
+        let dbModel = await dataCollectionPhase(driver, connectionOptions, mergedGenerationOptions);
+        if(!connectionOptions.includeRelatedTables)dbModel=this.unIncludeRelations(dbModel)
         // 经过 modelCustomizationPhase 处理，返回符合 TypeORM 规范的数据
         return modelCustomizationPhase(dbModel, mergedGenerationOptions, driver.defaultValues as DataTypeDefaults);
     }
 
     /**
-     * 获取指定表的 entity 源码内容
+     * 获取指定表的 entity 源码内容,
      * @param connectionOptions 数据库连接配置
      * @param generationOptions 生成配置（可选，默认即可）
      * @returns Promise<{ [fileName: string]: string }>
@@ -171,6 +202,7 @@ export class TypeormModelGeneratorService {
         const mergedGenerationOptions = { ...defaultGenerationOptions, ...generationOptions };
         const driver = createDriver(connectionOptions.databaseType);
         const dbModel = await dataCollectionPhase(driver, connectionOptions, mergedGenerationOptions);
+        if(!connectionOptions.includeRelatedTables)this.unIncludeRelations(dbModel)
         const customizedModel = modelCustomizationPhase(dbModel, mergedGenerationOptions, driver.defaultValues as DataTypeDefaults);
         // 注册 handlebars helpers
         registerHandlebarsHelpers(mergedGenerationOptions);
@@ -206,6 +238,49 @@ export class TypeormModelGeneratorService {
         }
         return result;
     }
+    /**
+     * 获取指定表的 entity 源码内容,
+     * @param connectionOptions 数据库连接配置
+     * @param generationOptions 生成配置（可选，默认即可）
+     * @returns Promise<{ [fileName: string]: string }>
+     */
+    async getEntitySourceCode(connectionOptions: IConnectionOptions, generationOptions?: Partial<IGenerationOptions>): Promise<{ [fileName: string]: string }> {
+        const defaultGenerationOptions = require("./IGenerationOptions").getDefaultGenerationOptions();
+        const mergedGenerationOptions = { ...defaultGenerationOptions, ...generationOptions };
+        const driver = createDriver(connectionOptions.databaseType);
+        const dbModel = await dataCollectionPhase(driver, connectionOptions, mergedGenerationOptions);
+        if(!connectionOptions.includeRelatedTables)this.unIncludeRelations(dbModel)
+        const customizedModel = modelCustomizationPhase(dbModel, mergedGenerationOptions, driver.defaultValues as DataTypeDefaults);
+        // 注册 handlebars helpers
+        registerHandlebarsHelpers(mergedGenerationOptions);
+        // 渲染模板
+        const entityTemplatePath = path.resolve(__dirname, "templates", "entity.mst");
+        const entityTemplate = fs.readFileSync(entityTemplatePath, "utf-8");
+        const entityCompliedTemplate = Handlebars.compile(entityTemplate, { noEscape: true });
+        const prettierOptions = { parser: "typescript", endOfLine: "auto" as const };
+        const result: { [fileName: string]: string } = {};
+        for (const entity of customizedModel) {
+            // Ensure template receives generationOptions for flags like addSwaggerIdentifier
+            const rendered = entityCompliedTemplate({
+                ...entity,
+                generationOptions: mergedGenerationOptions,
+            });
+            const fileName = changeCase.paramCase(entity.tscName);
+            const modulePath = path.resolve(mergedGenerationOptions.resultsPath, fileName);
+            const entityPath = path.join(modulePath, 'entity');
+           
+            let formatted:any = "";
+            try {
+                formatted = await Prettier.format(rendered, prettierOptions);
+            } catch (error) {
+                formatted = rendered;
+            }
+            // Manually add ApiProperty import to the top of the file
+            const finalContent = `${formatted}`;
+            result[`${fileName}.entity.ts`] = finalContent;
+        }
+        return result;
+    }
 
     /**
      * 生成指定表的 entity 文件
@@ -218,4 +293,16 @@ export class TypeormModelGeneratorService {
         const driver = createDriver(connectionOptions.databaseType);
         await require("./Engine").createModelFromDatabase(driver, connectionOptions, mergedGenerationOptions);
     }
+
+    unIncludeRelations(entitys: Entity[]) {
+        entitys.forEach(entity => {
+            entity.columns.forEach(col=>{
+                if(col.isUsedInRelationAsOwner)delete col.isUsedInRelationAsOwner
+                if(col.isUsedInRelationAsReferenced) delete col.isUsedInRelationAsReferenced
+            })
+          entity.relationIds = []
+          entity.relations = []
+        })
+        return entitys
+      }
 }

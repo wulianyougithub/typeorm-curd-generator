@@ -1,6 +1,6 @@
 {
   "name": "typeorm-crud-generator",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Generate CRUD and entity in NestJS project based on database table structure",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,6 +28,7 @@
     "generator",
     "entity",
     "database",
+    "typeorm-crud-generator",
     "typeorm-model-generator",
     "typeorm-model-generator-inspired"
   ],

@@ -145,6 +145,8 @@ interface IConnectionOptions {
   skipTables: string[];          // Tables to skip
   onlyTables: string[];          // Only process these tables
   instanceName?: string;
+  //If OnlyTables is set and there are associated tables that are not in OnlyTables, then this field needs to be set to false, and the generated entity will not contain any associated relationships. If they all exist, set to true, and an entity with associated relationships will be generated. default is false
+  includeRelatedTables?: boolean  
 }
 ```
 
@@ -270,6 +272,7 @@ export class MyService {
       ssl: false,
       skipTables: [],
       onlyTables: [],
+      includeRelatedTables:true
     };
 
     const generationOptions: Partial<IGenerationOptions> = {
@@ -317,6 +320,7 @@ export class MyService {
       ssl: false,
       skipTables: [],
       onlyTables: [],
+      includeRelatedTables:true
     }, {
       resultsPath: './src/generated',
       convertCaseEntity: 'pascal',
@@ -339,7 +343,7 @@ This project is inspired by and builds upon ideas from `typeorm-model-generator`
 You can customize the generated code by modifying the Handlebars templates in the `templates/` directory.
 
 
-### 1.0.0
+### 1.x
 - Initial release
 - Support for multiple database types
 - CRUD generation with customizable templates

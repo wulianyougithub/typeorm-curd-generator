@@ -10,7 +10,7 @@ import {{localImport (toEntityName entityName)}} from './{{toFileName fileName}}
 {{/inline}}
 {{#*inline "Column"}}
 {{#if @root.generationOptions.addSwaggerIdentifier}}
-@ApiProperty({ description: '{{#if this.options.comment}}{{escapeNewlines this.options.comment}}{{else}}{{toEntityName ../tscName}}的{{toPropertyName tscName}}{{/if}}', type: () => {{toSwaggerType this}}{{#if (toSwaggerFormat this)}}, format: '{{toSwaggerFormat this}}'{{/if}} })
+@ApiProperty({ description: '{{#if this.options.comment}}{{escapeNewlines this.options.comment}}{{else}}{{toEntityName @root.tscName}}的{{toPropertyName tscName}}{{/if}}', type: () => {{toSwaggerType this}}{{#if (toSwaggerFormat this)}}, format: '{{toSwaggerFormat this}}'{{/if}} })
 {{/if}}
 {{#generated}}@PrimaryGeneratedColumn({ type:"{{type}}", {{/generated}}{{^generated}}@Column("{{type}}",{ {{#primary}}primary:{{primary}},{{/primary}}{{/generated}}{{json options}}{{#default}},default: {{.}},{{/default}} })
 {{printPropertyVisibility}}{{toPropertyName tscName}}{{strictMode}}:{{tscType}}{{#if options.nullable}} | null{{/if}};

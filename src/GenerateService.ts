@@ -6,6 +6,7 @@ import IConnectionOptions from './IConnectionOptions';
 import IGenerationOptions from './IGenerationOptions';
 import * as path from 'path';
 import * as fs from 'fs';
+import { Entity } from './library';
 
 @Injectable()
 export class GenerateService {
@@ -13,10 +14,10 @@ export class GenerateService {
     private readonly typeormModelGeneratorService: TypeormModelGeneratorService,
     private readonly crudGeneratorService: CrudGeneratorService,
     private readonly fileArchiverService: FileArchiverService,
-  ) {}
+  ) { }
 
   async generateCrud(connectionOptions: IConnectionOptions, generationOptions?: Partial<IGenerationOptions>) {
-    const entities = await this.typeormModelGeneratorService.getEntities(connectionOptions, generationOptions);
+    let entities = await this.typeormModelGeneratorService.getEntities(connectionOptions, generationOptions);
     const entitySource = await this.typeormModelGeneratorService.getEntitySource(connectionOptions, generationOptions)
     const defaultGenerationOptions = require("./IGenerationOptions").getDefaultGenerationOptions();
     const mergedGenerationOptions = { ...defaultGenerationOptions, ...generationOptions };
@@ -46,13 +47,13 @@ export class GenerateService {
     return zipFilePath;
   }
   async generateSourceCode(connectionOptions: IConnectionOptions, generationOptions?: Partial<IGenerationOptions>) {
-    const entitySource = await this.typeormModelGeneratorService.getEntitySource(connectionOptions, generationOptions)
-    const entity=await this.typeormModelGeneratorService.getEntities(connectionOptions, generationOptions)
-    console.log('entity',entity)
+    let entity = await this.typeormModelGeneratorService.getEntities(connectionOptions, generationOptions)
+    const entitySource = await this.typeormModelGeneratorService.getEntitySourceCode(connectionOptions, generationOptions)
     const defaultGenerationOptions = require("./IGenerationOptions").getDefaultGenerationOptions();
     const mergedGenerationOptions = { ...defaultGenerationOptions, ...generationOptions };
     const crudSource = await this.crudGeneratorService.generateSourceCode(entity, mergedGenerationOptions)
-    console.log('crudSource',crudSource)
-    return {entitySource,crudSource};
+    return { entitySource, crudSource };
   }
+
+
 }

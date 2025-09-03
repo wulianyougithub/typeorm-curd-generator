@@ -22,6 +22,7 @@ export default interface IConnectionOptions {
     ssl: boolean;
     skipTables: string[];
     onlyTables: string[];
+    includeRelatedTables?:boolean;
 }
 
 export function getDefaultConnectionOptions(): IConnectionOptions {
@@ -37,6 +38,7 @@ export function getDefaultConnectionOptions(): IConnectionOptions {
         ssl: false,
         skipTables: [],
         onlyTables: [],
+        includeRelatedTables:false
     };
     return connectionOptions;
 }
